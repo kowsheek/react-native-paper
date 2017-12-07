@@ -23,6 +23,7 @@ import SwitchExample from './SwitchExample';
 import TextExample from './TextExample';
 import TextInputExample from './TextInputExample';
 import ToolbarExample from './ToolbarExample';
+import FABGroupExample from './FABGroupExample';
 import type { Theme } from 'react-native-paper/types';
 
 type Props = {
@@ -31,6 +32,7 @@ type Props = {
 };
 
 export const examples = {
+  animated: FABGroupExample,
   bottomNavigation: BottomNavigationExample,
   button: ButtonExample,
   card: CardExample,

@@ -2,7 +2,7 @@
 
 import color from 'color';
 import * as React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import Paper from './Paper';
 import Icon from './Icon';
 import TouchableRipple from './TouchableRipple';
@@ -10,6 +10,8 @@ import { white } from '../styles/colors';
 import withTheme from '../core/withTheme';
 import type { Theme } from '../types';
 import type { IconSource } from './Icon';
+
+const AnimatedPaper = Animated.createAnimatedComponent(Paper);
 
 type Props = {
   /**
@@ -31,12 +33,17 @@ type Props = {
   /**
    * Function to execute on press.
    */
-  onPress?: Function,
+  onPress: Function,
   style?: any,
   /**
    * @optional
    */
   theme: Theme,
+};
+
+type State = {
+  icon: IconSource,
+  fade: Animated.Value,
 };
 
 /**
@@ -60,7 +67,36 @@ type Props = {
  * );
  * ```
  */
-class FAB extends React.Component<Props> {
+
+class FAB extends React.Component<Props, State> {
+  state = {
+    icon: null,
+    fade: new Animated.Value(1),
+  };
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.icon === nextProps.icon) {
+      return;
+    }
+
+    this.setState({
+      icon: this.props.icon,
+    });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.icon === prevState.icon || this.state.icon === null) {
+      return;
+    }
+
+    this.state.fade.setValue(1);
+
+    Animated.timing(this.state.fade, {
+      duration: 200,
+      toValue: 0,
+    }).start();
+  }
+
   render() {
     const {
       small,
@@ -70,7 +106,6 @@ class FAB extends React.Component<Props> {
       onPress,
       theme,
       style,
-      ...rest
     } = this.props;
     const backgroundColor = theme.colors.accent;
     const isDark =
@@ -81,9 +116,29 @@ class FAB extends React.Component<Props> {
       .rgb()
       .string();
 
+    const opacityPrev = this.state.fade;
+    const opacityNext = this.state.icon
+      ? this.state.fade.interpolate({
+          inputRange: [0, 1],
+          outputRange: [1, 0],
+        })
+      : 1;
+
+    const rotatePrev = this.state.fade.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['-90deg', '0deg'],
+    });
+
+    const rotateNext = this.state.icon
+      ? this.state.fade.interpolate({
+          inputRange: [0, 1],
+          outputRange: ['0deg', '-180deg'],
+        })
+      : '0deg';
+
     return (
-      <Paper
-        {...rest}
+      <AnimatedPaper
+        {...this.props}
         style={[
           { backgroundColor, elevation: 12 },
           styles.content,
@@ -97,11 +152,40 @@ class FAB extends React.Component<Props> {
           rippleColor={rippleColor}
           style={[styles.content, small ? styles.small : styles.standard]}
         >
-          <View>
-            <Icon name={icon} size={24} color={textColor} />
-          </View>
+          {this.props.animated ? (
+            <View style={styles.content}>
+              {this.state.icon ? (
+                <Animated.View
+                  style={[
+                    styles.icon,
+                    {
+                      opacity: opacityPrev,
+                      transform: [{ rotate: rotatePrev }],
+                    },
+                  ]}
+                >
+                  <Icon name={this.state.icon} size={24} color={textColor} />
+                </Animated.View>
+              ) : null}
+              <Animated.View
+                style={[
+                  styles.icon,
+                  {
+                    opacity: opacityNext,
+                    transform: [{ rotate: rotateNext }],
+                  },
+                ]}
+              >
+                <Icon name={icon} size={24} color={textColor} />
+              </Animated.View>
+            </View>
+          ) : (
+            <View style={styles.content}>
+              <Icon name={icon} size={24} color={textColor} />
+            </View>
+          )}
         </TouchableRipple>
-      </Paper>
+      </AnimatedPaper>
     );
   }
 }
@@ -110,6 +194,8 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     justifyContent: 'center',
+    height: 24,
+    width: 24,
   },
   standard: {
     height: 56,
@@ -120,6 +206,13 @@ const styles = StyleSheet.create({
     height: 40,
     width: 40,
     borderRadius: 20,
+  },
+  icon: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
 });
 
