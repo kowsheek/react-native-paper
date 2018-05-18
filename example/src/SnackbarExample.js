@@ -43,7 +43,7 @@ class SnackbarExample extends React.Component<Props, State> {
               // Do something
             },
           }}
-          duration={Snackbar.DURATION_INDEFINITE}
+          duration={Snackbar.DURATION_MEDIUM}
         >
           Hey there! I&apos;m a Snackbar.
         </Snackbar>

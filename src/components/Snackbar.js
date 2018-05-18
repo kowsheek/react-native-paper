@@ -108,17 +108,17 @@ class Snackbar extends React.Component<Props, State> {
   static DURATION_SHORT = 4000;
 
   /**
-   * Show the Snackbar for a long duration.
+   * Show the Snackbar for a medium duration.
    */
-  static DURATION_LONG = 6000;
+  static DURATION_MEDIUM = 7000;
 
   /**
-   * Show the Snackbar for indefinite amount of time.
+   * Show the Snackbar for a long duration.
    */
-  static DURATION_INDEFINITE = Infinity;
+  static DURATION_LONG = 10000;
 
   static defaultProps = {
-    duration: this.DURATION_LONG,
+    duration: this.DURATION_MEDIUM,
   };
 
   state = {
@@ -153,17 +153,14 @@ class Snackbar extends React.Component<Props, State> {
       duration: SNACKBAR_ANIMATION_DURATION,
     }).start(() => {
       const { duration } = this.props;
-
-      if (duration !== Snackbar.DURATION_INDEFINITE) {
-        this._hideTimeout = setTimeout(this.props.onDismiss, duration);
-      }
+      this._hideTimeout = setTimeout(this.props.onDismiss, duration);
     });
   };
 
   _hide = () => {
     clearTimeout(this._hideTimeout);
 
-    this.state.scale.setValue(0);
+    this.state.scale.setValue(0.01);
   };
 
   render() {
